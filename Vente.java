@@ -15,4 +15,9 @@ public class Vente {
 		this.description = uneDescription;
 		this.statut = unStatut;
 	}
+
+	public String getTitre() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
