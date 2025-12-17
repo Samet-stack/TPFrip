@@ -1,9 +1,9 @@
-public class don_article {
+public class Don_article {
 	
 	private int idDon;
 	private int idArticle;
 	
-	public don_article(int unIdDon, int unIdArticle) {
+	public Don_article(int unIdDon, int unIdArticle) {
 		this.idDon = unIdDon;
 		this.idArticle = unIdArticle;
 	}
