@@ -1,216 +1,190 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 
-public class VueBenevole extends JPanel implements ActionListener {
+/**
+ * Cette classe représente l'espace de travail des bénévoles.
+ * Elle permet de saisir toutes les caractéristiques d'un vêtement donné.
+ */
+public class VueBenevole extends JPanel {
 
     private Modele modele;
     private Utilisateur utilisateur;
 
+    // Zones de saisie de texte
     private JTextField txtNomArticle, txtDonneur, txtDescription;
 
-    // Boutons radio pour la Taille
+    // Options à choix unique (Boutons radio) pour la Taille
     private JRadioButton rbXS, rbS, rbL, rbXL, rbXXL, rb3XL, rb4XL;
     private ButtonGroup bgTaille;
 
-    // Boutons radio pour l'Etat
+    // Options à choix unique pour l'état du vêtement
     private JRadioButton rbCorrect, rbBon, rbNeuf;
     private ButtonGroup bgEtat;
 
-    JComboBox<String> listeCouleur = new JComboBox<String>();
+    // Listes déroulantes pour les sélections
+    private JComboBox<String> cbCouleur = new JComboBox<String>();
     private JComboBox<Categorie> cbCategorie;
     private JComboBox<Vente> cbVente;
+    
     private JButton btnAjouter;
+    
+    // Label de texte pour confirmer l'enregistrement (remplace le popup)
+    private JLabel lblStatus;
 
     public VueBenevole(Modele modele) {
-    	
         this.modele = modele;
+        // Organisation : Titre au Nord, Formulaire au Centre, Validation au Sud
         setLayout(new BorderLayout());
 
-        JLabel lbl = new JLabel("Enregistrement Article", SwingConstants.CENTER);
-        lbl.setFont(new Font("Arial", Font.BOLD, 18));
-        add(lbl, BorderLayout.NORTH);
+        // --- Titre ---
+        JLabel lblTitre = new JLabel("Enregistrement d'un nouvel Article", SwingConstants.CENTER);
+        lblTitre.setFont(new Font("Arial", Font.BOLD, 18));
+        add(lblTitre, BorderLayout.NORTH);
 
-        JPanel form = new JPanel(new GridLayout(8, 1, 15, 15));
-        form.setBorder(BorderFactory.createEmptyBorder(20, 50, 20, 50));
+        // --- Formulaire ---
+        // Une grille de 8 lignes permet d'aligner parfaitement les libellés et les champs
+        JPanel form = new JPanel(new GridLayout(8, 2, 10, 10));
+        form.setBorder(BorderFactory.createEmptyBorder(20, 50, 10, 50));
 
-        // 1. Donneur
-        form.add(new JLabel("Nom Donneur :"));
+        form.add(new JLabel("Nom du Donneur :"));
         txtDonneur = new JTextField();
         form.add(txtDonneur);
 
-        // 2. Vente
         form.add(new JLabel("Vente concernée :"));
         cbVente = new JComboBox<>();
         form.add(cbVente);
 
-        // 3. Nom Article
-        form.add(new JLabel("Nom Article :"));
+        form.add(new JLabel("Nom de l'Article :"));
         txtNomArticle = new JTextField();
         form.add(txtNomArticle);
 
-        // 4. Catégorie
         form.add(new JLabel("Catégorie :"));
         cbCategorie = new JComboBox<>();
         form.add(cbCategorie);
 
-
-        // 5. Couleur
         form.add(new JLabel("Couleur :"));
-        listeCouleur.addItem("bleu");
-        listeCouleur.addItem("violet");
-        listeCouleur.addItem("rose");
-        listeCouleur.addItem("rouge");
-        listeCouleur.addItem("orange");
-        listeCouleur.addItem("jaune");
-        listeCouleur.addItem("vert");
-        listeCouleur.addItem("noir");
-        listeCouleur.addItem("marron");
-        listeCouleur.addItem("gris");
-        listeCouleur.addItem("blanc");
-        form.add(listeCouleur);
+        String[] listeCouleurs = {"bleu", "violet", "rose", "rouge", "orange", "jaune", "vert", "noir", "marron", "gris", "blanc"};
+        for(String c : listeCouleurs) cbCouleur.addItem(c);
+        form.add(cbCouleur);
 
-        // 6. Taille
+        // Gestion des Tailles avec un panneau interne
         form.add(new JLabel("Taille :"));
-        
-        // Création d'un panneau interne pour organiser les tailles sur 2 lignes
         JPanel panelTaille = new JPanel(new GridLayout(2, 4));
-
-        rbXS = new JRadioButton("XS");
-        rbS = new JRadioButton("S");
-        rbL = new JRadioButton("L");
-        rbXL = new JRadioButton("XL");
-        rbXXL = new JRadioButton("XXL");
-        rb3XL = new JRadioButton("3XL");
-        rb4XL = new JRadioButton("4XL");
-
-        // Groupe pour exclusion mutuelle
+        rbXS = new JRadioButton("XS"); rbS = new JRadioButton("S"); rbL = new JRadioButton("L");
+        rbXL = new JRadioButton("XL"); rbXXL = new JRadioButton("XXL"); rb3XL = new JRadioButton("3XL"); rb4XL = new JRadioButton("4XL");
+        
+        // On groupe les boutons pour qu'on ne puisse en cocher qu'un seul à la fois
         bgTaille = new ButtonGroup();
-        bgTaille.add(rbXS);
-        bgTaille.add(rbS);
-        bgTaille.add(rbL);
-        bgTaille.add(rbXL);
-        bgTaille.add(rbXXL);
-        bgTaille.add(rb3XL);
-        bgTaille.add(rb4XL);
+        bgTaille.add(rbXS); bgTaille.add(rbS); bgTaille.add(rbL); bgTaille.add(rbXL);
+        bgTaille.add(rbXXL); bgTaille.add(rb3XL); bgTaille.add(rb4XL);
+        rbL.setSelected(true); // Taille par défaut
 
-        // Sélection par défaut
-        rbL.setSelected(true);
-
-        // Ajout au panneau
-        panelTaille.add(rbXS);
-        panelTaille.add(rbS);
-        panelTaille.add(rbL);
-        panelTaille.add(rbXL);
-        panelTaille.add(rbXXL);
-        panelTaille.add(rb3XL);
-        panelTaille.add(rb4XL);
-
+        panelTaille.add(rbXS); panelTaille.add(rbS); panelTaille.add(rbL); panelTaille.add(rbXL);
+        panelTaille.add(rbXXL); panelTaille.add(rb3XL); panelTaille.add(rb4XL);
         form.add(panelTaille);
 
-        // 6. Description
-        form.add(new JLabel("Description :"));
+        form.add(new JLabel("Description libre :"));
         txtDescription = new JTextField();
         form.add(txtDescription);
 
-        // 7. Etat
-        form.add(new JLabel("Etat :"));
-        JPanel panelEtat = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
-
+        form.add(new JLabel("État actuel :"));
+        JPanel panelEtat = new JPanel(new FlowLayout(FlowLayout.LEFT));
         rbCorrect = new JRadioButton("Etat correct");
         rbBon = new JRadioButton("Bon état");
         rbNeuf = new JRadioButton("Comme neuf");
-        rbBon.setSelected(true); // Défaut
+        rbBon.setSelected(true);
 
         bgEtat = new ButtonGroup();
-        bgEtat.add(rbCorrect);
-        bgEtat.add(rbBon);
-        bgEtat.add(rbNeuf);
-
-        panelEtat.add(rbCorrect);
-        panelEtat.add(rbBon);
-        panelEtat.add(rbNeuf);
+        bgEtat.add(rbCorrect); bgEtat.add(rbBon); bgEtat.add(rbNeuf);
+        panelEtat.add(rbCorrect); panelEtat.add(rbBon); panelEtat.add(rbNeuf);
         form.add(panelEtat);
 
         add(form, BorderLayout.CENTER);
 
-        btnAjouter = new JButton("Enregistrer");
-        btnAjouter.addActionListener(this);
-        add(btnAjouter, BorderLayout.SOUTH);
+        // --- Zone de validation (Sud) ---
+        JPanel panelValidation = new JPanel(new GridLayout(2, 1));
+        
+        lblStatus = new JLabel(" "); // Message de confirmation
+        lblStatus.setHorizontalAlignment(SwingConstants.CENTER);
+        panelValidation.add(lblStatus);
+
+        btnAjouter = new JButton("Enregistrer dans le catalogue");
+        // Utilisation de la classe interne pour l'action du bouton
+        btnAjouter.addActionListener(new ActionEnregistrer());
+        panelValidation.add(btnAjouter);
+
+        add(panelValidation, BorderLayout.SOUTH);
     }
 
     public void setUtilisateur(Utilisateur u) {
         this.utilisateur = u;
     }
 
+    /**
+     * Rafraîchit les listes déroulantes en allant chercher les dernières infos SQL.
+     */
     public void rafraichir() {
         cbVente.removeAllItems();
-        ArrayList<Vente> lesVentes = modele.getLesVentes();
-        for (Vente v : lesVentes)
-            cbVente.addItem(v);
+        for (Vente v : modele.getLesVentes()) cbVente.addItem(v);
 
         cbCategorie.removeAllItems();
-        ArrayList<Categorie> lesCats = modele.getLesCategories();
-        for (Categorie c : lesCats)
-            cbCategorie.addItem(c);
+        for (Categorie c : modele.getLesCategories()) cbCategorie.addItem(c);
     }
 
-    public void actionPerformed(ActionEvent e) {
-        try {
-            String donneur = txtDonneur.getText();
-            String nomArt = txtNomArticle.getText();
-            String description = txtDescription.getText();
+    /**
+     * Classe interne dédiée à l'enregistrement de l'article.
+     */
+    class ActionEnregistrer implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            try {
+                // On récupère la taille sélectionnée
+                String taille = "L";
+                if (rbXS.isSelected()) taille = "XS";
+                else if (rbS.isSelected()) taille = "S";
+                else if (rbXL.isSelected()) taille = "XL";
+                else if (rbXXL.isSelected()) taille = "XXL";
+                else if (rb3XL.isSelected()) taille = "3XL";
+                else if (rb4XL.isSelected()) taille = "4XL";
 
-            // Récupération de la Taille
-            String taille = "L"; // Valeur par défaut
-            if (rbXS.isSelected())
-                taille = "XS";
-            else if (rbS.isSelected())
-                taille = "S";
-            else if (rbL.isSelected())
-                taille = "L";
-            else if (rbXL.isSelected())
-                taille = "XL";
-            else if (rbXXL.isSelected())
-                taille = "XXL";
-            else if (rb3XL.isSelected())
-                taille = "3XL";
-            else if (rb4XL.isSelected())
-                taille = "4XL";
+                // On récupère l'état sélectionné
+                String etat = "Bon état";
+                if (rbCorrect.isSelected()) etat = "Etat correct";
+                else if (rbNeuf.isSelected()) etat = "Comme neuf";
 
-            // Récupération de l'Etat
-            String etat = "Bon état";
-            if (rbCorrect.isSelected())
-                etat = "Etat correct";
-            else if (rbNeuf.isSelected())
-                etat = "Comme neuf";
+                // Récupération des objets sélectionnés dans les JComboBox
+                Vente v = (Vente) cbVente.getSelectedItem();
+                Categorie c = (Categorie) cbCategorie.getSelectedItem();
+                String couleur = (String) cbCouleur.getSelectedItem();
 
-            Vente v = (Vente) cbVente.getSelectedItem();
-            Categorie c = (Categorie) cbCategorie.getSelectedItem();
-            String couleur = (String) listeCouleur.getSelectedItem();
+                if (v == null || c == null) {
+                    lblStatus.setText("Sélectionnez une vente et une catégorie.");
+                    lblStatus.setForeground(Color.RED);
+                    return;
+                }
 
-            if (v == null || c == null)
-                return;
+                // Insertion via le modèle
+                boolean ok = modele.ajouterArticleComplet(txtNomArticle.getText(), txtDescription.getText(), 
+                             taille, couleur, etat, c.getIdCategorie(), v.getIdVente(), 
+                             utilisateur.getIdUtilisateur(), txtDonneur.getText());
 
-            boolean ok = modele.ajouterArticleComplet(nomArt, description, taille, couleur, etat, c.getIdCategorie(),
-                    v.getIdVente(), utilisateur.getIdUtilisateur(), donneur);
+                if (ok) {
+                    // Succès : on informe l'utilisateur en vert et on vide les champs
+                    lblStatus.setText("Succès : Article enregistré !");
+                    lblStatus.setForeground(new Color(0, 150, 0));
+                    txtNomArticle.setText("");
+                    txtDescription.setText("");
+                    txtDonneur.setText("");
+                } else {
+                    lblStatus.setText("Erreur lors de l'enregistrement SQL.");
+                    lblStatus.setForeground(Color.RED);
+                }
 
-            if (ok) {
-                JOptionPane.showMessageDialog(this, "Article enregistré avec succès !");
-                // Reset champs
-                txtNomArticle.setText("");
-                txtDescription.setText("");
-                // Reset sélections
-                rbL.setSelected(true);
-                rbBon.setSelected(true);
-            } else {
-                JOptionPane.showMessageDialog(this, "Erreur lors de l'enregistrement.");
+            } catch (Exception ex) {
+                lblStatus.setText("Erreur de saisie : " + ex.getMessage());
+                lblStatus.setForeground(Color.RED);
             }
-
-        } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this, "Erreur de saisie : " + ex.getMessage());
         }
     }
 }

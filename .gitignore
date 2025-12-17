@@ -22,3 +22,6 @@
 /VueBenevole.class
 /VueMaire.class
 /VueSecretaire.class
+/Fenetre$ActionDeconnexion.class
+/VueAuth$ActionConnexion.class
+/VueBenevole$ActionEnregistrer.class

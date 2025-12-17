@@ -162,6 +162,72 @@ public class Modele {
         }
     }
 
+    
+ // --- FONCTIONNALITÉ : ENREGISTRER UN BÉNÉVOLE ---
+    public boolean ajouterBenevole(String login, String mdp, String nom, String prenom, String email, String tel) {
+        // Requête SQL pour créer un utilisateur avec le rôle 'BENEVOLE' par défaut
+    	
+    	String sql = "INSERT INTO utilisateur (login, mdp, role, nom, prenom, email, telephone) VALUES (?, ?, 'BENEVOLE', ?, ?, ?, ?)";
+        try {
+        	PreparedStatement pst = connexion.prepareStatement(sql);
+        	pst.setString(1, login);
+        	pst.setString(2, mdp);
+        	pst.setString(3, nom);
+        	pst.setString(4, prenom);
+        	pst.setString(5, email);
+        	pst.setString(6, tel);
+        	pst.executeUpdate(); // Exécute l'insertion
+        	pst.close();
+            return true;
+            
+        } catch (SQLException e) {
+        	System.out.println("Erreur ajout bénévole : " + e.getMessage());
+        	return false;
+        }
+        	
+    }			
+        
+ // --- FONCTIONNALITÉ : MODIFIER UNE VENTE ---
+    public boolean modifierVente(int idVente, String titre, String date, String lieu) {
+        // Requête SQL pour mettre à jour les infos d'une vente existante via son ID
+        String sql = "UPDATE vente SET titre = ?, date_vente = ?, lieu = ? WHERE idVente = ?";
+        try {
+            PreparedStatement pst = connexion.prepareStatement(sql);
+            pst.setString(1, titre);
+            pst.setString(2, date);
+            pst.setString(3, lieu);
+            pst.setInt(4, idVente);
+            pst.executeUpdate(); // Exécute la mise à jour
+            pst.close();
+            return true;
+        } catch (SQLException e) {
+            System.out.println("Erreur modification vente : " + e.getMessage());
+            return false;
+        }
+    }
+    										
+    	public boolean supprimerVente(int idVente) {
+    		String sql = "DELETE FROM vente WHERE idVente = ?";
+    		
+    		try {
+    			PreparedStatement pst = connexion.prepareStatement(sql);
+    			pst.setInt(1,idVente);
+    			pst.executeUpdate();
+    			pst.close();
+    			return true;
+    	    } catch (SQLException e) {
+    	        // Attention : la suppression peut échouer si des articles sont liés à cette vente
+    	        System.out.println("Erreur suppression vente : " + e.getMessage());
+    	        return false;
+    	    }
+    	}
+    	    	
+    
+    
+
+  
+    
+    
     public ArrayList<Article> getCatalogue(int idVente) {
         ArrayList<Article> liste = new ArrayList<>();
         String sql = "SELECT * FROM article WHERE idVente = ?";

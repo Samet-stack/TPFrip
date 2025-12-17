@@ -1,124 +1,150 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 
+/**
+ * Cette classe est la structure de base du logiciel. 
+ * Elle sert de cadre pour afficher les différents formulaires (Vues).
+ */
 public class Fenetre extends JFrame {
-	
-	// Attributs
+    
+    // Attribut qui contient la connexion à la base de données
+    // On le garde ici pour pouvoir le donner à chaque nouveau panneau affiché
     private Modele modele;
-    private CardLayout cardLayout;
-    private JPanel panelPrincipal;
+    
+    // Garde en mémoire l'utilisateur qui s'est connecté
+    // Utile pour savoir si on doit afficher l'écran du Maire, du Bénévole ou du Secrétaire
     private Utilisateur utilisateurConnecte;
 
-    // Vues
-    private VueAuth vueAuth;
-    private VueSecretaire vueSecretaire;
-    private VueBenevole vueBenevole;
-    private VueMaire vueMaire;
-
+    /**
+     * Le constructeur : il s'exécute une seule fois au lancement du programme.
+     */
     public Fenetre() {
-        setTitle("Fripouilles - Gestion Ventes �ph�m�res");
-        setSize(1000, 700);
-        setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        // Définit le nom du logiciel en haut de la fenêtre
+        this.setTitle("Fripouilles - Gestion du Catalogue");
+        
+        // Définit une taille fixe pour que l'interface soit toujours lisible
+        this.setSize(1000, 700);
+        
+        // Force la fenêtre à apparaître au milieu de l'écran de l'ordinateur
+        this.setLocationRelativeTo(null); 
+        
+        // Indique au système d'arrêter complètement le programme si on ferme la fenêtre
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        modele = new Modele();
+        // On initialise la connexion SQL pour qu'elle soit prête dès le départ
+        this.modele = new Modele();
 
-        cardLayout = new CardLayout(); // � changer pour le changement de vue
-        panelPrincipal = new JPanel(cardLayout);
-
-        // Initialisation des vues
-        vueAuth = new VueAuth(modele, this);
-        vueSecretaire = new VueSecretaire(modele);
-        vueBenevole = new VueBenevole(modele);
-        vueMaire = new VueMaire(modele);
-
-        // Ajout au panel
-        panelPrincipal.add(vueAuth, "AUTH");
-        panelPrincipal.add(vueSecretaire, "SECRETAIRE");
-        panelPrincipal.add(vueBenevole, "BENEVOLE");
-        panelPrincipal.add(vueMaire, "MAIRE");
-
-        add(panelPrincipal);
-        setVisible(true);
-        changerVue("AUTH");
+        // On commence par afficher l'écran de connexion (VueAuth)
+        this.changerVue("AUTH");
+        
+        // Rend l'ensemble visible à l'utilisateur
+        this.setVisible(true);
     }
 
+    /**
+     * C'est la fonction qui gère le changement d'écran sans ouvrir de popup.
+     * Elle vide la fenêtre et installe un nouveau panneau à la place.
+     */
     public void changerVue(String nomVue) {
-        cardLayout.show(panelPrincipal, nomVue);
-        // Rafraichir les données au chargement de la vue
-        if (nomVue.equals("SECRETAIRE")) vueSecretaire.rafraichir();
-        if (nomVue.equals("BENEVOLE")) vueBenevole.rafraichir();
-        if (nomVue.equals("MAIRE")) vueMaire.rafraichir();
-    }
+        // Cette variable va stocker le nouveau panneau à installer
+        JPanel nouveauPanel = null;
 
-    public void setUtilisateurConnecte(Utilisateur u) {
-        this.utilisateurConnecte = u;
-        // Redirection selon le r�le
-        if (u.getRole().equals("MAIRE")) {
-            menuMaire();
-            changerVue("MAIRE");
-        } else if (u.getRole().equals("SECRETAIRE")) {
-            menuSecretaire();
-            changerVue("SECRETAIRE");
-        } else if (u.getRole().equals("BENEVOLE")) {
-            // On passe l'user � la vue b�n�vole pour l'enregistrement
-            vueBenevole.setUtilisateur(u);
-            menuBenevole();
-            changerVue("BENEVOLE");
+        // On vérifie quel écran est demandé
+        if (nomVue.equals("AUTH")) {
+            // On crée le panneau de connexion et on lui donne 'this' (la fenêtre)
+            // pour qu'il puisse nous signaler quand un utilisateur a réussi à se connecter
+            nouveauPanel = new VueAuth(modele, this);
+        } 
+        else if (nomVue.equals("SECRETAIRE")) {
+            VueSecretaire vs = new VueSecretaire(modele);
+            vs.rafraichir(); // On charge immédiatement la liste des ventes SQL
+            nouveauPanel = vs;
+        } 
+        else if (nomVue.equals("BENEVOLE")) {
+            VueBenevole vb = new VueBenevole(modele);
+            vb.setUtilisateur(utilisateurConnecte); // On dit au formulaire qui est le bénévole
+            vb.rafraichir(); // On charge les catégories et les ventes
+            nouveauPanel = vb;
+        } 
+        else if (nomVue.equals("MAIRE")) {
+            VueMaire vm = new VueMaire(modele);
+            vm.rafraichir(); // On prépare les catalogues pour le maire
+            nouveauPanel = vm;
+        }
+
+        // Si on a bien créé un panneau
+        if (nouveauPanel != null) {
+            // setContentPane retire l'ancien panneau et "colle" le nouveau au centre
+            this.setContentPane(nouveauPanel);
+            
+            // Ces deux lignes forcent l'ordinateur à rafraîchir l'affichage
+            // pour éviter que l'écran reste blanc ou bugge lors du changement
+            this.revalidate();
+            this.repaint();
         }
     }
 
-    private void menuMaire() {
-        JMenuBar barre = new JMenuBar();
-        JMenu menu = new JMenu("Menu Maire");
-        JMenuItem item1 = new JMenuItem("Consulter Catalogue");
-        JMenuItem itemQ = new JMenuItem("Déconnexion");
+    /**
+     * Cette méthode reçoit l'utilisateur qui vient de se connecter.
+     * Elle déclenche le changement de menu et d'écran selon son métier.
+     */
+    public void setUtilisateurConnecte(Utilisateur u) {
+        this.utilisateurConnecte = u;
         
-        item1.addActionListener(e -> changerVue("MAIRE"));
-        itemQ.addActionListener(e -> deconnexion());
-
-        menu.add(item1);
-        menu.add(itemQ);
-        barre.add(menu);
-        setJMenuBar(barre);
+        // Selon le rôle écrit dans la base de données, on adapte l'interface
+        if (u.getRole().equals("MAIRE")) {
+            this.configurerMenu("Espace Maire");
+            this.changerVue("MAIRE");
+        } 
+        else if (u.getRole().equals("SECRETAIRE")) {
+            this.configurerMenu("Espace Secrétariat");
+            this.changerVue("SECRETAIRE");
+        } 
+        else if (u.getRole().equals("BENEVOLE")) {
+            this.configurerMenu("Espace Bénévole");
+            this.changerVue("BENEVOLE");
+        }
     }
 
-    private void menuSecretaire() {
+    /**
+     * Crée la barre de navigation en haut de la fenêtre.
+     */
+    private void configurerMenu(String labelMenu) {
+        // Création de la barre horizontale
         JMenuBar barre = new JMenuBar();
-        JMenu menu = new JMenu("Menu Secrétaire");
-        JMenuItem item1 = new JMenuItem("Gérer les Ventes");
-        JMenuItem itemQ = new JMenuItem("Déconnexion");
+        
+        // Création du bouton de menu qui contiendra les options
+        JMenu menuOption = new JMenu(labelMenu);
+        
+        // Création de la ligne cliquable pour se déconnecter
+        JMenuItem itemLogOut = new JMenuItem("Se déconnecter");
+        
+        // On attache une classe spéciale (en bas) qui gère le clic
+        itemLogOut.addActionListener(new ActionDeconnexion());
 
-        item1.addActionListener(e -> changerVue("SECRETAIRE"));
-        itemQ.addActionListener(e -> deconnexion());
-
-        menu.add(item1);
-        menu.add(itemQ);
-        barre.add(menu);
-        setJMenuBar(barre);
+        // On assemble le tout : l'item dans le menu, le menu dans la barre
+        menuOption.add(itemLogOut);
+        barre.add(menuOption);
+        
+        // On installe la barre finie en haut de la fenêtre
+        this.setJMenuBar(barre);
     }
 
-    private void menuBenevole() {
-        JMenuBar barre = new JMenuBar();
-        JMenu menu = new JMenu("Menu Bénévole");
-        JMenuItem item1 = new JMenuItem("Enregistrer Articles");
-        JMenuItem itemQ = new JMenuItem("Déconnexion");
-
-        item1.addActionListener(e -> changerVue("BENEVOLE"));
-        itemQ.addActionListener(e -> deconnexion());
-
-        menu.add(item1);
-        menu.add(itemQ);
-        barre.add(menu);
-        setJMenuBar(barre);
-    }
-
-    private void deconnexion() {
-        utilisateurConnecte = null;
-        setJMenuBar(null);
-        changerVue("AUTH");
-        revalidate();
+    /**
+     * Petite classe interne qui ne s'occupe que de la déconnexion.
+     * C'est plus propre et plus simple que de tout mélanger.
+     */
+    class ActionDeconnexion implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            // On oublie l'utilisateur actuel
+            utilisateurConnecte = null; 
+            
+            // On enlève la barre de menu pour revenir à l'écran de login propre
+            setJMenuBar(null); 
+            
+            // On demande à la fenêtre de revenir sur l'affichage AUTH
+            changerVue("AUTH"); 
+        }
     }
 }
