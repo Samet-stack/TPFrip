@@ -1,16 +1,22 @@
+/**
+ * Cette classe définit l'objet Utilisateur qui gère les profils de l'application.
+ * Elle permet de stocker les informations personnelles, les identifiants et le rôle.
+ * Cet objet est utilisé pour gérer les sessions de connexion et les droits d'accès.
+ */
 public class Utilisateur {
    
-	// Attributs
-    private int idUtilisateur;
-    private String login;
-    private String role;
-    private String nom;
-    private String prenom;
-    private String email;
-    private String telephone;
+	//   Attributs : Informations stockées pour chaque utilisateur  
+    private int idUtilisateur;   // Identifiant unique dans la base de données
+    private String login;        // Identifiant de connexion
+    private String role;         // Rôle de l'utilisateur (MAIRE, SECRETAIRE, BENEVOLE)
+    private String nom;          // Nom de famille
+    private String prenom;       // Prénom
+    private String email;        // Adresse de courrier électronique
+    private String telephone;    // Numéro de téléphone de contact
 
-    // Constructeurs
+    // Constructeur : Initialisation d'un utilisateur avec toutes ses données 
     public Utilisateur(int idUtilisateur, String login, String role, String nom, String prenom, String email, String telephone) {
+        // Assignation des paramètres reçus aux variables de l'instance
         this.idUtilisateur = idUtilisateur;
         this.login = login;
         this.role = role;
@@ -20,8 +26,8 @@ public class Utilisateur {
         this.telephone = telephone;
     }
     
+    // Getteurs / Setteurs : Méthodes d'accès et de modification des données
     
-    // Getteurs/Setteurs
     public int getIdUtilisateur() {
         return this.idUtilisateur;
     }

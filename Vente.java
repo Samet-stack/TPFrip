@@ -1,16 +1,22 @@
 import java.util.Date;
 
+/**
+ * Cette classe définit l'objet Vente utilisé pour organiser les événements de l'association.
+ * Elle permet de stocker et manipuler les informations telles que le titre, la date et le lieu.
+ * Sert de passerelle entre les données de la base SQL et l'affichage dans les tableaux Swing.
+ */
 public class Vente {
 	
-	// Attributs
-    private int idVente;
-    private String titre;
-    private Date dateVente;
-    private String lieu;
-    private String statut;
+	//  Liste des propriétés de la vente
+    private int idVente; // Identifiant unique (Clé primaire)
+    private String titre; // Nom de l'événement
+    private Date dateVente; // Date de réalisation de la vente
+    private String lieu; // Localisation de l'événement
+    private String statut; // État de la vente (ex: en préparation)
 
-    // Constructeurs
+    // Constructeur pour initialiser un objet Vente complet 
     public Vente(int idVente, String titre, Date dateVente, String lieu, String statut) {
+        // Assignation des valeurs reçues aux attributs de la classe
         this.idVente = idVente;
         this.titre = titre;
         this.dateVente = dateVente;
@@ -18,7 +24,8 @@ public class Vente {
         this.statut = statut;
     }
 
-    // Getteurs/Setteurs
+    //  Liste des Accesseurs
+    
     public int getIdVente() {
         return this.idVente;
     }
@@ -59,8 +66,10 @@ public class Vente {
         this.statut = statut;
     }
 
+    //  Redéfinition de la méthode d'affichage 
     @Override
     public String toString() {
+        // Retourne une version texte simplifiée pour les JComboBox (Listes déroulantes)
         return this.titre + " (" + this.lieu + ")";
     }
 }

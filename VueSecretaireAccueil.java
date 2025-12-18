@@ -1,23 +1,31 @@
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Écran de bienvenue principal pour le profil Secrétariat.
+ * Sert de page d'atterrissage après une authentification réussie.
+ * Utilise un positionnement centré pour offrir une interface épurée genre pro.
+ */
 public class VueSecretaireAccueil extends JPanel {
 
     public VueSecretaireAccueil() {
-        // Le GridBagLayout est un gestionnaire de placement qui permet 
-        // de centrer très facilement un composant au milieu de la fenêtre.
+        // Configuration du Gestionnaire de Placement 
+        // Le GridBagLayout est choisi ici car, sans contraintes spécifiques, 
+        // il place par défaut le composant ajouté au centre exact du panneau.
         this.setLayout(new GridBagLayout());
         
-        // Création du texte de bienvenue
+        //  Création et Style du message d'accueil
         JLabel message = new JLabel("Bienvenue dans votre Espace Secrétariat");
         
-        // On modifie l'apparence du texte (Police Arial, en Gras, taille 26)
+        // Paramétrage de la typographie : Police sans-serif, mise en gras pour le titre
         message.setFont(new Font("Arial", Font.BOLD, 26));
         
-        // On donne une couleur au texte (Rouge, Vert, Bleu)
-        message.setForeground(new Color(50, 50, 150));  // style en java un  peu 
+        // Définition d'une couleur personnalisée  via les composantes RGB
+        // Le commentaire "style en java un peu" est bien noté.
+        message.setForeground(new Color(50, 50, 150)); 
 
-        // On ajoute le texte au panneau
+        //  Ajout du composant au conteneur 
+        // On insère le label dans le panneau "this" qui sera ensuite affiché dans la Fenetre
         this.add(message);
     }
 }

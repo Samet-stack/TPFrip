@@ -1,15 +1,23 @@
 import java.sql.*;
 import java.util.ArrayList;
 
+/**
+ * Cette classe centralise toutes les interactions avec la base de données MySQL.
+ * Elle gère la connexion, l'exécution des requêtes SQL et la transformation des résultats en objets.
+ * C'est le cœur logique (Modèle) qui permet de manipuler les données de l'application Fripouilles.
+ */
 public class Modele {
 
+    // Objets JDBC pour la connexion et l'exécution des requêtes
     private Connection connexion;
     private ResultSet rs;
     private PreparedStatement pst;
 
     public Modele() {
         try {
+            // Chargement du pilote JDBC pour MySQL
             Class.forName("com.mysql.cj.jdbc.Driver");
+            // Établissement de la connexion avec les paramètres (URL, utilisateur, mot de passe)
             this.connexion = DriverManager.getConnection("jdbc:mysql://localhost/fripouilles?serverTimezone=UTC", "root", "");
             System.out.println("Connexion réussie à la base Fripouilles");
         } catch (ClassNotFoundException e) {
@@ -19,6 +27,9 @@ public class Modele {
         }
     }
 
+    /**
+     * Ferme proprement la connexion à la base de données pour libérer les ressources.
+     */
     public void fermerConnexion() {
         try {
             if (connexion != null) connexion.close();
@@ -27,16 +38,22 @@ public class Modele {
         }
     }
 
-    //Authentification
+    // SECTION : AUTHENTIFICATION 
 
+    /**
+     * Vérifie les identifiants en base et retourne un objet Utilisateur si le login réussit.
+     */
     public Utilisateur authentifier(String login, String mdp) {
         Utilisateur user = null;
+        // Requête sécurisée avec des "?" pour éviter les injections SQL
         String sql = "SELECT * FROM utilisateur WHERE login = ? AND mdp = ?";
         try {
             pst = connexion.prepareStatement(sql);
-            pst.setString(1, login);
-            pst.setString(2, mdp);
+            pst.setString(1, login); // Remplacement du 1er "?"
+            pst.setString(2, mdp);   // Remplacement du 2ème "?"
             rs = pst.executeQuery();
+            
+            // Si une ligne correspond, on crée l'objet Utilisateur
             if (rs.next()) {
                 user = new Utilisateur(
                     rs.getInt("idUtilisateur"),
@@ -56,14 +73,17 @@ public class Modele {
         return user;
     }
 
-    // gestion des ventes pour secrétaire et maire
-
+    // SECTION : GESTION DES VENTES
+    /**
+     * Récupère la liste complète des ventes enregistrées.
+     */
     public ArrayList<Vente> getLesVentes() {
         ArrayList<Vente> liste = new ArrayList<>();
         String sql = "SELECT * FROM vente";
         try {
             pst = connexion.prepareStatement(sql);
             rs = pst.executeQuery();
+            // Parcours du résultat ligne par ligne
             while (rs.next()) {
                 liste.add(new Vente(
                     rs.getInt("idVente"),
@@ -81,6 +101,9 @@ public class Modele {
         return liste;
     }
 
+    /**
+     * Insère une nouvelle vente avec un statut par défaut "EN_PREPARATION".
+     */
     public boolean ajouterVente(String titre, String dateStr, String lieu) {
         String sql = "INSERT INTO vente (titre, date_vente, lieu, statut) VALUES (?, ?, ?, 'EN_PREPARATION')";
         try {
@@ -88,7 +111,7 @@ public class Modele {
             pst.setString(1, titre);
             pst.setString(2, dateStr); 
             pst.setString(3, lieu);
-            pst.executeUpdate();
+            pst.executeUpdate(); // Utilisation de executeUpdate pour les INSERT
             pst.close();
             return true;
         } catch (SQLException e) {
@@ -97,8 +120,11 @@ public class Modele {
         }
     }
 
-    // gestion des categorie (liste déroulante)
+    // SECTION : GESTION DES CATÉGORIES
 
+    /**
+     * Récupère les catégories pour remplir les listes déroulantes (JComboBox).
+     */
     public ArrayList<Categorie> getLesCategories() {
         ArrayList<Categorie> liste = new ArrayList<>();
         String sql = "SELECT * FROM categorie";
@@ -120,26 +146,30 @@ public class Modele {
         return liste;
     }
 
-    // gestion des article pour bénévoles
+    //  SECTION : GESTION DES ARTICLES (BÉNÉVOLES)
 
+    /**
+     * Opération complexe : Crée d'abord un don, récupère son ID, puis crée l'article lié.
+     */
     public boolean ajouterArticleComplet(String nomArticle, String description, String taille, String couleur, String etat, int idCateg, int idVente, int idUser, String nomDonneur) {
-        // 1. On crée d'abord le don
         int idDonCree = -1;
         try {
+            // Étape 1 : Création du don et récupération de la clé générée automatiquement
             String sqlDon = "INSERT INTO don (nom_donneur, date_don) VALUES (?, NOW())";
             pst = connexion.prepareStatement(sqlDon, Statement.RETURN_GENERATED_KEYS);
             pst.setString(1, nomDonneur);
             pst.executeUpdate();
+            
             rs = pst.getGeneratedKeys();
             if (rs.next()) {
-                idDonCree = rs.getInt(1);
+                idDonCree = rs.getInt(1); // On récupère l'ID du don fraîchement créé
             }
             rs.close();
             pst.close();
 
             if (idDonCree == -1) return false;
 
-            // 2. On crée l'article lié au don, à la vente et au bénévole
+            // Étape 2 : Création de l'article en utilisant l'ID du don précédemment obtenu
             String sqlArt = "INSERT INTO article (nom, description, taille, couleur, etat, idCategorie, idVente, idDon, idUtilisateur) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             pst = connexion.prepareStatement(sqlArt);
             pst.setString(1, nomArticle);
@@ -162,11 +192,10 @@ public class Modele {
         }
     }
 
-    
- // --- FONCTIONNALITÉ : ENREGISTRER UN BÉNÉVOLE ---
+    /**
+     * Ajoute un nouvel utilisateur avec le rôle figé à 'BENEVOLE'.
+     */
     public boolean ajouterBenevole(String login, String mdp, String nom, String prenom, String email, String tel) {
-        // Requête SQL pour créer un utilisateur avec le rôle 'BENEVOLE' par défaut
-    	
     	String sql = "INSERT INTO utilisateur (login, mdp, role, nom, prenom, email, telephone) VALUES (?, ?, 'BENEVOLE', ?, ?, ?, ?)";
         try {
         	PreparedStatement pst = connexion.prepareStatement(sql);
@@ -176,20 +205,19 @@ public class Modele {
         	pst.setString(4, prenom);
         	pst.setString(5, email);
         	pst.setString(6, tel);
-        	pst.executeUpdate(); // Exécute l'insertion
+        	pst.executeUpdate(); 
         	pst.close();
             return true;
-            
         } catch (SQLException e) {
         	System.out.println("Erreur ajout bénévole : " + e.getMessage());
         	return false;
         }
-        	
     }			
         
- // --- FONCTIONNALITÉ : MODIFIER UNE VENTE ---
+    /**
+     * Met à jour les informations d'une vente existante à partir de son ID.
+     */
     public boolean modifierVente(int idVente, String titre, String date, String lieu) {
-        // Requête SQL pour mettre à jour les infos d'une vente existante via son ID
         String sql = "UPDATE vente SET titre = ?, date_vente = ?, lieu = ? WHERE idVente = ?";
         try {
             PreparedStatement pst = connexion.prepareStatement(sql);
@@ -197,7 +225,7 @@ public class Modele {
             pst.setString(2, date);
             pst.setString(3, lieu);
             pst.setInt(4, idVente);
-            pst.executeUpdate(); // Exécute la mise à jour
+            pst.executeUpdate(); 
             pst.close();
             return true;
         } catch (SQLException e) {
@@ -206,28 +234,27 @@ public class Modele {
         }
     }
     										
-    	public boolean supprimerVente(int idVente) {
-    		String sql = "DELETE FROM vente WHERE idVente = ?";
-    		
-    		try {
-    			PreparedStatement pst = connexion.prepareStatement(sql);
-    			pst.setInt(1,idVente);
-    			pst.executeUpdate();
-    			pst.close();
-    			return true;
-    	    } catch (SQLException e) {
-    	        // Attention : la suppression peut échouer si des articles sont liés à cette vente
-    	        System.out.println("Erreur suppression vente : " + e.getMessage());
-    	        return false;
-    	    }
-    	}
+    /**
+     * Supprime une vente de la base de données via son identifiant.
+     */
+    public boolean supprimerVente(int idVente) {
+        String sql = "DELETE FROM vente WHERE idVente = ?";
+        try {
+            PreparedStatement pst = connexion.prepareStatement(sql);
+            pst.setInt(1,idVente);
+            pst.executeUpdate();
+            pst.close();
+            return true;
+        } catch (SQLException e) {
+            // Échec potentiel si des articles sont encore rattachés à cette vente (Contrainte d'intégrité)
+            System.out.println("Erreur suppression vente : " + e.getMessage());
+            return false;
+        }
+    }
     	    	
-    
-    
-
-  
-    
-    
+    /**
+     * Récupère tous les articles associés à une vente spécifique pour l'affichage du catalogue.
+     */
     public ArrayList<Article> getCatalogue(int idVente) {
         ArrayList<Article> liste = new ArrayList<>();
         String sql = "SELECT * FROM article WHERE idVente = ?";
@@ -256,11 +283,4 @@ public class Modele {
         }
         return liste;
     }
-    
-    
-    
-    
-    
-    
-    
 }

@@ -3,87 +3,93 @@ import java.awt.*;
 import java.awt.event.*;
 
 /**
- * Cette classe représente l'écran de connexion (Authentification).
- * Elle est construite comme un panneau (JPanel) qui sera placé dans la fenêtre principale.
+ * Interface graphique dédiée à l'authentification des utilisateurs de l'application.
+ * Ce panneau (JPanel) permet la saisie sécurisée des identifiants (login et mot de passe).
+ * Il assure la transition vers l'interface principale après validation par le modèle SQL.
  */
 public class VueAuth extends JPanel {
     
-    // Objets nécessaires pour le fonctionnement
+    // Objets de pilotage : accès aux données (modele) et contrôle de navigation (fenetre)
     private Modele modele;
     private Fenetre fenetre;
     
-    // Composants de saisie
+    // Éléments du formulaire de saisie
     private JTextField txtLogin;
     private JPasswordField txtMdp;
     private JButton btnValider;
     
-    // Label pour afficher les erreurs sans ouvrir de popup
+    // Composant textuel pour le retour utilisateur immédiat en cas d'erreur
     private JLabel lblErreur;
 
     public VueAuth(Modele modele, Fenetre fenetre) {
         this.modele = modele;
         this.fenetre = fenetre;
         
-        // GridBagLayout permet de centrer précisément les composants au milieu de l'écran
+        //  CONFIGURATION DE LA MISE EN PAGE 
+        // Le GridBagLayout est utilisé pour un centrage parfait et flexible des composants
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         
-        // Ajoute de l'espace (marges) autour de chaque composant
+        // Définition des marges internes (5 pixels) pour aérer le formulaire
         gbc.insets = new Insets(5, 5, 5, 5);
         
-        // Ligne 0 : Login
+        //  LIGNE 0 : CHAMP LOGIN 
         gbc.gridx = 0; gbc.gridy = 0;
         add(new JLabel("Login :"), gbc);
         
         gbc.gridx = 1;
-        txtLogin = new JTextField(15);
+        txtLogin = new JTextField(15); // Largeur fixe pour l'homogénéité visuelle
         add(txtLogin, gbc);
 
-        // Ligne 1 : Mot de passe
+        //  LIGNE 1 : CHAMP MOT DE PASSE 
         gbc.gridx = 0; gbc.gridy = 1;
         add(new JLabel("Mot de passe :"), gbc);
         
         gbc.gridx = 1;
-        txtMdp = new JPasswordField(15);
+        txtMdp = new JPasswordField(15); // Masquage automatique des caractères
         add(txtMdp, gbc);
 
-        // Ligne 2 : Zone de message d'erreur (initialement vide)
+        //  LIGNE 2 : ZONE DE NOTIFICATION 
         gbc.gridx = 0; gbc.gridy = 2;
-        gbc.gridwidth = 2; // Le message prend la largeur des deux colonnes
+        gbc.gridwidth = 2; // Le label s'étend sur les deux colonnes du formulaire
         lblErreur = new JLabel(" ");
-        lblErreur.setForeground(Color.RED); // Texte en rouge pour signaler un problème
+        lblErreur.setForeground(Color.RED); // Couleur d'alerte pour les messages d'erreur
         add(lblErreur, gbc);
 
-        // Ligne 3 : Bouton de validation
+        //  LIGNE 3 : BOUTON D'ACTION 
         gbc.gridy = 3;
         btnValider = new JButton("Se connecter");
         
-        // On attache l'action au bouton en utilisant la classe interne définie plus bas
+        // Attachement de l'écouteur d'événement pour traiter le clic
         btnValider.addActionListener(new ActionConnexion());
         add(btnValider, gbc);
     }
 
     /**
-     * Classe interne qui gère uniquement le clic sur le bouton de connexion.
-     * C'est ici que l'on vérifie si l'utilisateur existe dans la base.
+     * Classe interne gérant l'événement du clic sur le bouton de connexion.
+     * Cette structure sépare la construction graphique de la logique métier.
      */
     class ActionConnexion implements ActionListener {
         public void actionPerformed(ActionEvent e) {
+            // Récupération des données saisies par l'utilisateur
             String login = txtLogin.getText();
-            // On transforme le mot de passe masqué en texte lisible pour la vérification
+            
+            // Conversion sécurisée du mot de passe (tableau de char vers String)
             String mdp = new String(txtMdp.getPassword());
             
-            // Appel de la méthode du modèle pour chercher l'utilisateur en SQL
+            // Vérification des droits via le moteur de données SQL
             Utilisateur u = modele.authentifier(login, mdp);
             
             if (u != null) {
-                // Si l'utilisateur est trouvé, on vide les champs et on change de vue
+                // CAS SUCCÈS : Nettoyage des champs et passage à l'écran suivant
                 txtLogin.setText("");
                 txtMdp.setText("");
                 lblErreur.setText(" ");
+                
+                // Informe la fenêtre principale de l'identité de l'utilisateur connecté
                 fenetre.setUtilisateurConnecte(u);
             } else {
-                // Si la connexion échoue, on affiche le message en rouge sans popup
+                // CAS ÉCHEC : Information visuelle sans interrompre l'expérience par un popup
                 lblErreur.setText("Erreur : Login ou mot de passe incorrect.");
             }
         }
