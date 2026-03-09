@@ -18,7 +18,7 @@ public class Modele {
             // Chargement du pilote JDBC pour MySQL
             Class.forName("com.mysql.cj.jdbc.Driver");
             // Établissement de la connexion avec les paramètres (URL, utilisateur, mot de passe)
-            this.connexion = DriverManager.getConnection("jdbc:mysql://localhost/fripouilles?serverTimezone=UTC", "root", "");
+            this.connexion = DriverManager.getConnection("jdbc:mysql://172.16.203.112/fripouilles?serverTimezone=UTC", "sio", "slam");
             System.out.println("Connexion réussie à la base Fripouilles");
         } catch (ClassNotFoundException e) {
             System.out.println("Driver manquant : " + e);
