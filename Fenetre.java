@@ -67,6 +67,12 @@ public class Fenetre extends JFrame {
             vb.rafraichir();
             nouveauPanel = vb;
         }
+        // --- CAS 7 : VUE POUR LE MAIRE ---
+        else if (nomVue.equals("MAIRE")) {
+            VueMaire vm = new VueMaire(modele);
+            vm.rafraichir();
+            nouveauPanel = vm;
+        }
 
         // Si on a bien trouvé un panneau à afficher
         if (nouveauPanel != null) {
